@@ -1,32 +1,66 @@
-# Business Knowledge Base
+# Pharmacy Knowledge Base
 
-> Replace everything below with your pilot business's real information.
-> Each "### " heading becomes one retrievable chunk. Keep chunks focused —
-> one topic per section works better for retrieval than long mixed paragraphs.
+> EXAMPLE DATA — "Kigali Central Pharmacy" is a fictional placeholder built
+> with realistic Rwandan conventions (pricing in RWF, local mobile money,
+> real insurers) so you can test the agent end-to-end. Replace it with your
+> actual pilot pharmacy's real information once you have one.
 
 ### Business Hours
-We are open Monday to Saturday, 8:00 AM to 7:00 PM. Closed on Sundays and public holidays.
+We are open every day, Monday to Saturday, 7:30 AM to 9:30 PM.
+Sunday: 9:00 AM to 6:00 PM.
+Emergency/night service: closed after 9:30 PM — for urgent medication needs
+after hours, please contact Kigali University Teaching Hospital (CHUK)
+emergency pharmacy or the nearest 24-hour pharmacy in Nyarugenge.
 
 ### Location
-We are located at [Street Name, Neighborhood], Kigali. Near [landmark].
+Kigali Central Pharmacy, KN 4 Ave, Nyarugenge, Kigali — near Kigali City
+Market (Rwandex), opposite Bank of Kigali main branch.
 
-### Products / Services
-We offer [list your main products or services here, with short descriptions].
+### Services Offered
+- Prescription medication dispensing
+- Over-the-counter (OTC) medication sales
+- Blood pressure checks (free, walk-in)
+- Blood sugar/glucose testing (small fee)
+- Baby care and hygiene products
+- First aid supplies
+- Health and wellness products (vitamins, supplements)
+
+### Common Product Availability
+We typically stock: pain relief and fever medication, cold and flu remedies,
+allergy medication, digestive health products, vitamins and supplements,
+baby formula and diapers, first aid supplies, and basic medical equipment
+(thermometers, blood pressure monitors). Stock can vary — call ahead to
+confirm availability of a specific item before visiting.
 
 ### Pricing
-[List prices or price ranges for your main offerings. Be specific — this is
-one of the most common customer questions.]
+- Blood pressure check: free
+- Blood sugar test: 1,500 RWF
+- Home delivery fee: 1,000–2,000 RWF depending on distance within Kigali
+- Medication prices vary by product and are confirmed at time of purchase
+  or prescription submission — we don't list individual drug prices here
+  since they change with supplier costs.
 
 ### Delivery / Pickup
-[Explain if you deliver, delivery zones, delivery fees, estimated time, or
-if pickup only.]
+We deliver within Kigali (Gasabo, Nyarugenge, Kicukiro) for orders placed
+before 6:00 PM, same-day delivery in most cases. Delivery fee is 1,000–2,000
+RWF depending on your location. Pickup in-store is always free and does not
+require an appointment.
 
 ### Payment Methods
-We accept [Mobile Money (MTN MoMo / Airtel Money), cash, card, etc.].
+We accept MTN Mobile Money (MoMo), Airtel Money, cash (RWF), and major
+insurance including RSSB (Mutuelle de Santé / RAMA), Radiant Insurance,
+and UAP Insurance. Please bring your insurance card for coverage
+verification.
 
-### Return / Refund Policy
-[Explain your policy clearly — customers ask this a lot.]
+### Prescription Requirements
+Prescription medications require a valid prescription from a licensed
+doctor. Please bring the original prescription or a clear photo of it when
+ordering by phone or WhatsApp. Some OTC items do not require a prescription
+— ask our pharmacist if you're unsure which category your medication falls
+under.
 
-### Contact for Human Help
-If the AI can't answer a question, a human team member will follow up.
-You can also reach us directly at [phone number] or [email].
+### Contact for Pharmacist / Human Help
+For any question about medication use, dosage, side effects, drug
+interactions, or health symptoms, customers should speak directly with our
+on-duty pharmacist. Call us at +250 788 XXX XXX or visit us in person at
+the address above. WhatsApp orders: same number, 8:00 AM–9:00 PM.
