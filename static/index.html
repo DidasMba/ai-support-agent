@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AI Support Agent — Demo</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #f4f4f6;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+  .chat {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 640px;
+  }
+  .header {
+    background: #1a73e8;
+    color: white;
+    padding: 16px 20px;
+    font-weight: 600;
+  }
+  .messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.4;
+    font-size: 14px;
+    white-space: pre-wrap;
+  }
+  .user { align-self: flex-end; background: #1a73e8; color: white; border-bottom-right-radius: 4px; }
+  .bot { align-self: flex-start; background: #eee; color: #222; border-bottom-left-radius: 4px; }
+  .handoff { border: 1px solid #f0b400; }
+  .input-row {
+    display: flex;
+    border-top: 1px solid #eee;
+    padding: 10px;
+    gap: 8px;
+  }
+  input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+  }
+  button {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+</style>
+</head>
+<body>
+  <div class="chat">
+    <div class="header">Support Chat — Demo</div>
+    <div class="messages" id="messages"></div>
+    <div class="input-row">
+      <input id="input" placeholder="Ask a question..." />
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+<script>
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send');
+
+function addMessage(text, sender, handoff=false) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + sender + (handoff ? ' handoff' : '');
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+async function send() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  inputEl.value = '';
+  sendBtn.disabled = true;
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    const data = await res.json();
+    addMessage(data.reply, 'bot', data.handed_off);
+  } catch (e) {
+    addMessage("Something went wrong reaching the server.", 'bot', true);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+sendBtn.addEventListener('click', send);
+inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+
+addMessage("Hi! Ask me anything about the business — hours, prices, delivery, etc.", 'bot');
+</script>
+</body>
+</html>
