@@ -12,7 +12,7 @@ app = FastAPI(title="AI Support Agent")
 # Built once at startup — embeddings for a small FAQ are cheap and fast.
 store = build_store()
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemini-3.6-flash")
 
 SYSTEM_PROMPT = """You are a helpful customer support assistant for a local pharmacy.
 Answer ONLY using the information provided in the context below.
