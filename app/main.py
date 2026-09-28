@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -6,6 +7,8 @@ from pydantic import BaseModel
 import google.generativeai as genai
 
 from app.rag import build_store
+
+load_dotenv()
 
 app = FastAPI(title="AI Support Agent")
 

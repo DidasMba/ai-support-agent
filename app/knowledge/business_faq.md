@@ -14,7 +14,7 @@ emergency pharmacy or the nearest 24-hour pharmacy in Nyarugenge.
 
 ### Location
 Kigali Central Pharmacy, KN 4 Ave, Nyarugenge, Kigali — near Kigali City
-Market (Rwandex), opposite Bank of Kigali main branch.
+Market (Rwandex), opposite Bank of Kigali main branch. 
 
 ### Services Offered
 - Prescription medication dispensing
