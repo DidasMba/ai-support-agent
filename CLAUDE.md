@@ -21,15 +21,22 @@ Deploy (Cloud Run, Dockerfile serves on port 8080):
 gcloud run deploy ai-support-agent --source . --region us-central1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=...
 ```
 
-There is no test suite or build step. CI (`.github/workflows/ci.yml`) runs `ruff check .` on every push and PR; run it locally with `pip install ruff && ruff check .`. To verify behavior, run the server and `POST /chat` with `{"message": "..."}`.
+There is no build step. `python -m pytest` runs `tests/`, which need no API key (they cover chunking, handoff detection and prompt building). CI (`.github/workflows/ci.yml`) runs `ruff check .` on every push and PR; run it locally with `pip install ruff && ruff check .`. To verify behavior, run the server and `POST /chat` with `{"message": "..."}`.
 
 ## Architecture
 
-Request flow for `POST /chat` (`app/main.py`):
-1. `store.query()` (`app/rag.py`) embeds the question with `gemini-embedding-001` and runs cosine similarity against in-memory vectors. It returns the top 3 chunks with a similarity above **0.3**.
+Code is split one file per job under `app/`:
+- `main.py`: the web server only. `POST /chat` calls `agent.answer()` and serves the widget at `/`.
+- `agent.py`: the pipeline (retrieve, call Gemini, decide handoff). Loads `.env`, builds the store and configures Gemini at import. Future channels (WhatsApp) should call `answer()` rather than duplicating logic.
+- `prompts.py`: `SYSTEM_PROMPT`, `NO_MATCH_REPLY`, and `build_prompt()`.
+- `handoff.py`: `HANDOFF_PHRASES` and `needs_human()`.
+- `rag.py`: chunking and the vector store.
+
+Request flow for `POST /chat`:
+1. `store.query()` (`rag.py`) embeds the question with `gemini-embedding-001` and runs cosine similarity against in-memory vectors. It returns the top 3 chunks with a similarity above **0.3**.
 2. **No matches → immediate handoff.** A canned "team will follow up" reply is returned and the LLM is never called.
 3. Otherwise the prompt is built as `SYSTEM_PROMPT + retrieved context + question` (a single string, not a chat/system-instruction API), and one `generate_content` call is made to `gemini-3.6-flash`.
-4. `handed_off` is a **substring heuristic** over the reply (`"not sure"`, `"pharmacist"`, `"speak with"`, …). If you change the wording in `SYSTEM_PROMPT` or the fallback, update this phrase list to match, or handoff detection silently breaks.
+4. `handed_off` is a **substring heuristic** (`handoff.py`) over the reply (`"not sure"`, `"pharmacist"`, `"speak with"`, …). If you change the wording in `SYSTEM_PROMPT` or the fallback, update this phrase list to match, or handoff detection silently breaks.
 
 Knowledge base: `app/knowledge/business_faq.md` is split into chunks on `### ` headings. Each chunk's heading becomes its `title`, which is returned as `sources`. Content above the first `###` (the `#` title and the example-data note) is dropped. New FAQ entries must use `### ` headings to be retrievable. Everything is embedded once at startup, so restart after editing the file.
 
