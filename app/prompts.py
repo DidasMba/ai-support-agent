@@ -24,6 +24,12 @@ NO_MATCH_REPLY = (
     "is there anything else I can help with?"
 )
 
+# Sent when Gemini can't be reached (rate limit, outage, timeout).
+BUSY_REPLY = (
+    "Sorry, I'm having trouble answering right now. Please try again in a "
+    "minute, or call the pharmacy and our team will help you directly."
+)
+
 
 def build_prompt(question: str, matches: list[dict]) -> str:
     context = "\n\n".join(f"[{m['title']}]\n{m['text']}" for m in matches)
