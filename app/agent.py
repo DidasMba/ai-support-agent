@@ -24,7 +24,12 @@ model = genai.GenerativeModel("gemini-3.6-flash")
 
 def answer(question: str) -> dict:
     """Return {reply, handed_off, sources} for a customer question."""
-    matches = store.query(question, top_k=3)
+    try:
+        matches = store.query(question, top_k=3)
+    except Exception:
+        # Embedding the question is also a Gemini API call.
+        logger.exception("Knowledge base search failed")
+        return {"reply": BUSY_REPLY, "handed_off": True, "sources": []}
 
     if not matches:
         return {"reply": NO_MATCH_REPLY, "handed_off": True, "sources": []}
