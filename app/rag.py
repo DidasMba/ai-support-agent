@@ -10,8 +10,9 @@ changing the rest of the app.
 
 import os
 import re
-import numpy as np
+
 import google.generativeai as genai
+import numpy as np
 
 EMBEDDING_MODEL = "models/gemini-embedding-001"
 
