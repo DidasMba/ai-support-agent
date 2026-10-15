@@ -1,12 +1,9 @@
 """Checks that run without a Gemini API key."""
 
-import os
-
+from app.config import KB_PATH
 from app.handoff import needs_human
 from app.prompts import build_prompt
 from app.rag import load_chunks
-
-KB_PATH = os.path.join(os.path.dirname(__file__), "..", "app", "knowledge", "business_faq.md")
 
 
 def test_chunks_split_on_h3_headings():

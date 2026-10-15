@@ -1,13 +1,23 @@
 """The web server: receives chat messages and serves the chat widget."""
 
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.agent import answer
+from app.agent import create_agent
 
-app = FastAPI(title="AI Support Agent")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Built once at startup — embeddings for a small FAQ are cheap and fast.
+    app.state.agent = create_agent()
+    yield
+
+
+app = FastAPI(title="AI Support Agent", lifespan=lifespan)
 
 
 class ChatRequest(BaseModel):
@@ -21,8 +31,8 @@ class ChatResponse(BaseModel):
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
-    return ChatResponse(**answer(req.message))
+def chat(req: ChatRequest, request: Request):
+    return ChatResponse(**request.app.state.agent.answer(req.message))
 
 
 # Serve the demo chat widget at "/"

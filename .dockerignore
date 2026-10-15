@@ -1,0 +1,12 @@
+# Keep secrets and local-only files out of the container image.
+.env
+venv/
+.git/
+.github/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+tests/
+docs/
