@@ -5,70 +5,106 @@ For a pilot with a small knowledge base (one business's FAQ), an in-memory
 vector store is enough — no need for a managed vector DB yet. When the
 business's docs grow (multiple locations, big catalogs, PDFs), swap
 `InMemoryStore` for Vertex AI Vector Search or AlloyDB + pgvector without
-changing the rest of the app.
+changing the rest of the app: keep `query(question, top_k)` returning
+a list of `Match` dicts.
 """
 
+import logging
 import re
+from collections.abc import Callable
+from pathlib import Path
+from typing import TypedDict
 
 import google.generativeai as genai
 import numpy as np
 
-from app.config import EMBEDDING_MODEL, MIN_SCORE
+from app import config
+
+logger = logging.getLogger(__name__)
+
+# (texts, task_type) -> one vector per text
+Embedder = Callable[[list[str], str], list[list[float]]]
 
 
-def load_chunks(md_path: str) -> list[dict]:
-    """Split a markdown knowledge file into chunks on '### ' headings."""
-    with open(md_path, "r", encoding="utf-8") as f:
-        text = f.read()
+class Chunk(TypedDict):
+    title: str
+    text: str
 
-    raw_chunks = re.split(r"\n(?=### )", text)
-    chunks = []
-    for raw in raw_chunks:
-        raw = raw.strip()
-        if not raw or raw.startswith("#") and not raw.startswith("###"):
-            continue
-        title_match = re.match(r"### (.+)", raw)
-        title = title_match.group(1) if title_match else "General"
-        chunks.append({"title": title, "text": raw})
+
+class Match(Chunk):
+    score: float
+
+
+_HEADING = re.compile(r"^### (.+)$", re.MULTILINE)
+
+
+def load_chunks(md_path: str | Path) -> list[Chunk]:
+    """Split a markdown knowledge file into one chunk per '### ' section.
+
+    Anything above the first '### ' heading (page title, notes) is dropped.
+    """
+    text = Path(md_path).read_text(encoding="utf-8")
+    headings = list(_HEADING.finditer(text))
+    chunks: list[Chunk] = []
+    for heading, following in zip(headings, [*headings[1:], None], strict=True):
+        end = following.start() if following else len(text)
+        body = text[heading.start():end].strip()
+        chunks.append({"title": heading.group(1).strip(), "text": body})
     return chunks
+
+
+def gemini_embed(texts: list[str], task_type: str) -> list[list[float]]:
+    """Embed texts with Gemini (the SDK batches long lists for us)."""
+    # Startup indexing may retry; a live customer question must fail fast.
+    options = {"timeout": config.GEMINI_TIMEOUT}
+    if task_type == "retrieval_query":
+        options["retry"] = None
+    result = genai.embed_content(
+        model=config.EMBEDDING_MODEL,
+        content=texts,
+        task_type=task_type,
+        request_options=options,
+    )
+    return result["embedding"]
+
+
+def _normalize(vectors: np.ndarray) -> np.ndarray:
+    norms = np.linalg.norm(vectors, axis=-1, keepdims=True)
+    return vectors / np.maximum(norms, 1e-8)
 
 
 class InMemoryStore:
     """Embeds chunks once at startup and does cosine-similarity retrieval."""
 
-    def __init__(self, chunks: list[dict]):
+    def __init__(
+        self,
+        chunks: list[Chunk],
+        embed: Embedder = gemini_embed,
+        min_score: float = config.MIN_SCORE,
+    ):
+        if not chunks:
+            raise ValueError("The knowledge base has no '### ' sections to index.")
         self.chunks = chunks
-        self.vectors = self._embed_all([c["text"] for c in chunks])
+        self.embed = embed
+        self.min_score = min_score
+        # Normalized once, so a query is a single matrix-vector product.
+        vectors = embed([c["text"] for c in chunks], "retrieval_document")
+        self.vectors = _normalize(np.asarray(vectors, dtype=np.float32))
 
-    def _embed_all(self, texts: list[str]) -> np.ndarray:
-        vectors = []
-        for t in texts:
-            result = genai.embed_content(
-                model=EMBEDDING_MODEL,
-                content=t,
-                task_type="retrieval_document",
-            )
-            vectors.append(result["embedding"])
-        return np.array(vectors)
-
-    def query(self, question: str, top_k: int = 3) -> list[dict]:
-        q_vec = genai.embed_content(
-            model=EMBEDDING_MODEL,
-            content=question,
-            task_type="retrieval_query",
-        )["embedding"]
-        q_vec = np.array(q_vec)
-
-        sims = self.vectors @ q_vec / (
-            np.linalg.norm(self.vectors, axis=1) * np.linalg.norm(q_vec) + 1e-8
+    def query(self, question: str, top_k: int = config.TOP_K) -> list[Match]:
+        q_vec = _normalize(
+            np.asarray(self.embed([question], "retrieval_query")[0], dtype=np.float32)
         )
-        top_idx = np.argsort(sims)[::-1][:top_k]
+        scores = self.vectors @ q_vec
+        best = np.argsort(scores)[::-1][:top_k]
         return [
-            {**self.chunks[i], "score": float(sims[i])}
-            for i in top_idx
-            if sims[i] > MIN_SCORE
+            {**self.chunks[i], "score": float(scores[i])}
+            for i in best
+            if scores[i] > self.min_score
         ]
 
 
-def build_store(kb_path: str) -> InMemoryStore:
-    return InMemoryStore(load_chunks(kb_path))
+def build_store(kb_path: str | Path) -> InMemoryStore:
+    chunks = load_chunks(kb_path)
+    logger.info("Indexing %d knowledge base sections from %s", len(chunks), kb_path)
+    return InMemoryStore(chunks)
