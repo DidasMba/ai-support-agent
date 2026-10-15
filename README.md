@@ -10,7 +10,9 @@ Built for pharmacies and other local businesses in Rwanda, and usable by any sma
 - Embeds it with Gemini's embedding model, retrieves relevant chunks per question
 - Answers customer questions grounded ONLY in that knowledge (no hallucinated policies)
 - Falls back to "a human will follow up" when it doesn't know — critical for trust
-- Ships with a simple web chat widget so you can demo it today, before wiring up WhatsApp
+- Understands follow-up questions ("and on Sunday?") using the recent conversation
+- Ships with a polished, mobile-friendly chat widget (light/dark mode, suggested
+  questions, source chips, clear handoff notices) so you can demo it today
 
 ## Quickstart (5 minutes)
 
@@ -25,6 +27,29 @@ uvicorn app.main:app --reload
 ```
 
 Open http://localhost:8000 and try: "What time do you open?" It answers using the included fictional pharmacy example.
+
+## API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/chat` | `{"message": "...", "history": [{"role": "user", "content": "..."}]}` → `{"reply", "handed_off", "sources"}` |
+| `GET` | `/info` | Business name and suggested questions for the widget |
+| `GET` | `/health` | Liveness check |
+| `GET` | `/docs` | Interactive OpenAPI docs |
+
+The server is stateless: the widget sends recent turns as `history`, so it scales out on Cloud Run without a session store.
+
+## Configuration
+
+Every setting in `app/config.py` can be overridden with an environment variable (or a line in `.env`), e.g. `BUSINESS_NAME`, `CHAT_MODEL`, `TOP_K`, `MIN_SCORE`, `MAX_HISTORY_TURNS`. See `.env.example`.
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+python -m pytest        # no API key needed — Gemini is replaced with fakes
+```
 
 ## Use it for your own business
 
