@@ -8,13 +8,12 @@ business's docs grow (multiple locations, big catalogs, PDFs), swap
 changing the rest of the app.
 """
 
-import os
 import re
 
 import google.generativeai as genai
 import numpy as np
 
-EMBEDDING_MODEL = "models/gemini-embedding-001"
+from app.config import EMBEDDING_MODEL, MIN_SCORE
 
 
 def load_chunks(md_path: str) -> list[dict]:
@@ -67,12 +66,9 @@ class InMemoryStore:
         return [
             {**self.chunks[i], "score": float(sims[i])}
             for i in top_idx
-            if sims[i] > 0.3  # loose relevance floor; tune per business
+            if sims[i] > MIN_SCORE
         ]
 
 
-def build_store() -> InMemoryStore:
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    kb_path = os.path.join(os.path.dirname(__file__), "knowledge", "business_faq.md")
-    chunks = load_chunks(kb_path)
-    return InMemoryStore(chunks)
+def build_store(kb_path: str) -> InMemoryStore:
+    return InMemoryStore(load_chunks(kb_path))
