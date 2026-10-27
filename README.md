@@ -1,4 +1,4 @@
-# AI Support Agent
+# Subiza AI
 
 A RAG-powered customer support chat agent for small businesses, built on Gemini with the [Google Gen AI SDK](https://github.com/googleapis/python-genai) and running on Gemini Enterprise Agent Platform (formerly Vertex AI). Give it your FAQs, hours, prices and policies, and it answers customer questions grounded only in that knowledge — with a clear handoff to a human when it doesn't know.
 
