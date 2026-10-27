@@ -33,9 +33,21 @@ KB_PATH = Path(_env_str("KB_PATH", str(APP_DIR / "knowledge" / "business_faq.md"
 # Business shown in the chat widget
 BUSINESS_NAME = _env_str("BUSINESS_NAME", "Kigali Central Pharmacy")
 
+# Where Gemini runs.
+# With GOOGLE_CLOUD_PROJECT set, the app uses Gemini Enterprise Agent Platform
+# (formerly Vertex AI) and authenticates with Application Default Credentials:
+# no API key to store or leak. Without it, it falls back to the Gemini
+# Developer API with GEMINI_API_KEY, which is enough for a first local run.
+GOOGLE_CLOUD_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT") or None
+GOOGLE_CLOUD_LOCATION = _env_str("GOOGLE_CLOUD_LOCATION", "global")
+# Set this if your embedding model is served from a different location than
+# the chat model (for example, "us-central1").
+EMBEDDING_LOCATION = _env_str("EMBEDDING_LOCATION", GOOGLE_CLOUD_LOCATION)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or None
+
 # Gemini models
 CHAT_MODEL = _env_str("CHAT_MODEL", "gemini-3.6-flash")
-EMBEDDING_MODEL = _env_str("EMBEDDING_MODEL", "models/gemini-embedding-001")
+EMBEDDING_MODEL = _env_str("EMBEDDING_MODEL", "gemini-embedding-001")
 
 # Retrieval
 TOP_K = _env_int("TOP_K", 3)  # how many FAQ sections to give Gemini per question
@@ -57,12 +69,3 @@ SUGGESTED_QUESTIONS = [
     "Which payment methods do you accept?",
     "Do you accept insurance?",
 ]
-
-
-def gemini_api_key() -> str:
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        raise RuntimeError(
-            "GEMINI_API_KEY is not set. Copy .env.example to .env and add your key."
-        )
-    return key
