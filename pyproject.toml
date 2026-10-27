@@ -1,5 +1,5 @@
 [project]
-name = "ai-support-agent"
+name = "subiza-ai"
 version = "1.2.0"
 description = "RAG customer-support chat agent for local businesses, built on FastAPI and Gemini on Google Cloud."
 requires-python = ">=3.11"
