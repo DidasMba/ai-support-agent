@@ -1,8 +1,8 @@
-# AI Support Agent
+# Subiza AI
 
-A RAG-powered customer support chat agent for small businesses, built on Gemini with the [Google Gen AI SDK](https://github.com/googleapis/python-genai) and running on Gemini Enterprise Agent Platform (formerly Vertex AI). Give it your FAQs, hours, prices and policies, and it answers customer questions grounded only in that knowledge — with a clear handoff to a human when it doesn't know.
+Subiza AI is a RAG-powered customer support chat agent for small businesses, built on Gemini with the [Google Gen AI SDK](https://github.com/googleapis/python-genai) and running on Gemini Enterprise Agent Platform (formerly Vertex AI). Give it your FAQs, hours, prices and policies, and it answers customer questions grounded only in that knowledge — with a clear handoff to a human when it doesn't know.
 
-Built for pharmacies and other local businesses in Rwanda, and usable by any small business.
+*Subiza* means "answer" in Kinyarwanda. Built for pharmacies and other local businesses in Rwanda, and usable by any small business.
 
 ## What it does
 
@@ -17,8 +17,8 @@ Built for pharmacies and other local businesses in Rwanda, and usable by any sma
 ## Quickstart (5 minutes)
 
 ```bash
-git clone https://github.com/DidasMba/ai-support-agent.git
-cd ai-support-agent
+git clone https://github.com/DidasMba/subiza-ai.git
+cd subiza-ai
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -82,7 +82,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member "serviceAccount:support-agent@$PROJECT_ID.iam.gserviceaccount.com" \
   --role roles/aiplatform.user
 
-gcloud run deploy ai-support-agent \
+gcloud run deploy subiza-ai \
   --source . \
   --project $PROJECT_ID \
   --region us-central1 \

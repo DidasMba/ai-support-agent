@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AI Support Agent", version="1.2.0", lifespan=lifespan)
+app = FastAPI(title="Subiza AI", version="1.2.0", lifespan=lifespan)
 
 
 @app.middleware("http")
