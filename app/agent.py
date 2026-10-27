@@ -7,9 +7,7 @@ import logging
 from collections.abc import Sequence
 from typing import Protocol
 
-import google.generativeai as genai
-
-from app import config
+from app import config, gemini
 from app.handoff import needs_human
 from app.prompts import BUSY_REPLY, NO_MATCH_REPLY, build_prompt
 from app.rag import build_store
@@ -23,7 +21,7 @@ class Store(Protocol):
 
 
 class Model(Protocol):
-    def generate_content(self, prompt: str, **kwargs): ...
+    def generate_content(self, prompt: str): ...
 
 
 class SupportAgent:
@@ -49,14 +47,12 @@ class SupportAgent:
 
         sources = [m["title"] for m in matches]
         try:
-            response = self.model.generate_content(
-                build_prompt(question, matches, history),
-                # Fail fast instead of retrying for a minute while rate-limited.
-                request_options={"timeout": config.GEMINI_TIMEOUT, "retry": None},
-            )
+            # GeminiChat fails fast (timeout, no retry) instead of retrying
+            # for a minute while rate-limited.
+            response = self.model.generate_content(build_prompt(question, matches, history))
             reply = response.text.strip()
         except Exception:
-            # Rate limit, outage, or a blocked reply (response.text raises ValueError).
+            # Rate limit, outage, or a blocked or empty reply.
             logger.exception("Gemini call failed")
             return _handoff(BUSY_REPLY, sources)
 
@@ -75,7 +71,9 @@ def _handoff(reply: str, sources: list[str] | None = None) -> ChatResponse:
 
 def create_agent() -> SupportAgent:
     """Connect to Gemini and embed the knowledge base. Called once at startup."""
-    genai.configure(api_key=config.gemini_api_key())
-    store = build_store(config.KB_PATH)
-    model = genai.GenerativeModel(config.CHAT_MODEL)
-    return SupportAgent(store, model)
+    client = gemini.make_client()
+    embed_client = client
+    if gemini.uses_agent_platform() and config.EMBEDDING_LOCATION != config.GOOGLE_CLOUD_LOCATION:
+        embed_client = gemini.make_client(config.EMBEDDING_LOCATION)
+    store = build_store(config.KB_PATH, gemini.GeminiEmbedder(embed_client))
+    return SupportAgent(store, gemini.GeminiChat(client))

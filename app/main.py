@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import config
+from app import config, gemini
 from app.agent import create_agent
 from app.schemas import ChatRequest, ChatResponse, WidgetInfo
 
@@ -24,11 +24,13 @@ logger = logging.getLogger("app")
 async def lifespan(app: FastAPI):
     # Built once at startup — embeddings for a small FAQ are cheap and fast.
     app.state.agent = create_agent()
-    logger.info("Support agent ready (model=%s)", config.CHAT_MODEL)
+    logger.info(
+        "Support agent ready (backend=%s, model=%s)", gemini.backend_name(), config.CHAT_MODEL
+    )
     yield
 
 
-app = FastAPI(title="AI Support Agent", version="1.1.0", lifespan=lifespan)
+app = FastAPI(title="AI Support Agent", version="1.2.0", lifespan=lifespan)
 
 
 @app.middleware("http")

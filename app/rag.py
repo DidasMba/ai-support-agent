@@ -4,7 +4,8 @@ Minimal RAG layer for the support agent.
 For a pilot with a small knowledge base (one business's FAQ), an in-memory
 vector store is enough — no need for a managed vector DB yet. When the
 business's docs grow (multiple locations, big catalogs, PDFs), swap
-`InMemoryStore` for Vertex AI Vector Search or AlloyDB + pgvector without
+`InMemoryStore` for Vector Search on Gemini Enterprise Agent Platform
+(formerly Vertex AI) or AlloyDB + pgvector without
 changing the rest of the app: keep `query(question, top_k)` returning
 a list of `Match` dicts.
 """
@@ -15,7 +16,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TypedDict
 
-import google.generativeai as genai
 import numpy as np
 
 from app import config
@@ -53,21 +53,6 @@ def load_chunks(md_path: str | Path) -> list[Chunk]:
     return chunks
 
 
-def gemini_embed(texts: list[str], task_type: str) -> list[list[float]]:
-    """Embed texts with Gemini (the SDK batches long lists for us)."""
-    # Startup indexing may retry; a live customer question must fail fast.
-    options = {"timeout": config.GEMINI_TIMEOUT}
-    if task_type == "retrieval_query":
-        options["retry"] = None
-    result = genai.embed_content(
-        model=config.EMBEDDING_MODEL,
-        content=texts,
-        task_type=task_type,
-        request_options=options,
-    )
-    return result["embedding"]
-
-
 def _normalize(vectors: np.ndarray) -> np.ndarray:
     norms = np.linalg.norm(vectors, axis=-1, keepdims=True)
     return vectors / np.maximum(norms, 1e-8)
@@ -79,7 +64,7 @@ class InMemoryStore:
     def __init__(
         self,
         chunks: list[Chunk],
-        embed: Embedder = gemini_embed,
+        embed: Embedder,
         min_score: float = config.MIN_SCORE,
     ):
         if not chunks:
@@ -104,7 +89,7 @@ class InMemoryStore:
         ]
 
 
-def build_store(kb_path: str | Path) -> InMemoryStore:
+def build_store(kb_path: str | Path, embed: Embedder) -> InMemoryStore:
     chunks = load_chunks(kb_path)
     logger.info("Indexing %d knowledge base sections from %s", len(chunks), kb_path)
-    return InMemoryStore(chunks)
+    return InMemoryStore(chunks, embed)
