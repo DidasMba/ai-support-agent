@@ -62,6 +62,13 @@ def http_options(attempts: int) -> types.HttpOptions:
     )
 
 
+def thinking_config() -> types.ThinkingConfig | None:
+    """Keep replies fast: FAQ answers need little reasoning (see THINKING_LEVEL)."""
+    if not config.THINKING_LEVEL:
+        return None
+    return types.ThinkingConfig(thinking_level=config.THINKING_LEVEL.upper())
+
+
 class GeminiEmbedder:
     """An `Embedder` for the RAG store: (texts, task_type) -> one vector per text."""
 
@@ -97,7 +104,10 @@ class GeminiChat:
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,
-            config=types.GenerateContentConfig(http_options=http_options(NO_RETRY)),
+            config=types.GenerateContentConfig(
+                http_options=http_options(NO_RETRY),
+                thinking_config=thinking_config(),
+            ),
         )
         if not response.text:
             # A blocked or empty reply: the agent turns this into the "busy" reply.
