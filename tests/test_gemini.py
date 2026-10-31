@@ -94,6 +94,12 @@ def test_chat_sends_prompt_without_retries():
     model, contents, chat_config = client.models.generate_calls[0]
     assert (model, contents) == ("gemini-3.6-flash", "Hi")
     assert chat_config.http_options.retry_options.attempts == gemini.NO_RETRY
+    assert chat_config.thinking_config.thinking_level == "LOW"
+
+
+def test_thinking_level_can_be_turned_off(monkeypatch):
+    monkeypatch.setattr(config, "THINKING_LEVEL", "")
+    assert gemini.thinking_config() is None
 
 
 def test_blocked_or_empty_reply_raises():

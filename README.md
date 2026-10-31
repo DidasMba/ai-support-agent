@@ -53,7 +53,7 @@ Every setting in `app/config.py` can be overridden with an environment variable 
 
 On Agent Platform, `GOOGLE_CLOUD_LOCATION` defaults to `global`. If your embedding model isn't served there, set `EMBEDDING_LOCATION` (for example `us-central1`) and the app uses a second client for embeddings only.
 
-All Gemini calls live in `app/gemini.py`. Startup indexing retries up to 3 times; a live customer question never retries and gets the "busy" reply after `GEMINI_TIMEOUT` seconds.
+All Gemini calls live in `app/gemini.py`. Startup indexing retries up to 3 times; a live customer question never retries and gets the "busy" reply after `GEMINI_TIMEOUT` seconds. `THINKING_LEVEL` (default `low`) keeps Gemini from reasoning past that limit; answering from a short FAQ needs little reasoning.
 
 ## Development
 

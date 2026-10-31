@@ -56,6 +56,11 @@ MIN_SCORE = _env_float("MIN_SCORE", 0.3)  # relevance floor; below it we hand of
 # Seconds to wait for Gemini before giving the customer the "busy" reply
 GEMINI_TIMEOUT = _env_float("GEMINI_TIMEOUT", 20)
 
+# How long Gemini "thinks" before answering: minimal, low, medium or high.
+# Answering from a short FAQ needs little reasoning, and the default (high on
+# recent models) can take longer than GEMINI_TIMEOUT. Empty = model default.
+THINKING_LEVEL = _env_str("THINKING_LEVEL", "low")
+
 # Conversation limits (protect the prompt size and the API bill)
 MAX_MESSAGE_CHARS = _env_int("MAX_MESSAGE_CHARS", 1000)
 MAX_HISTORY_TURNS = _env_int("MAX_HISTORY_TURNS", 6)  # earlier turns sent to Gemini
